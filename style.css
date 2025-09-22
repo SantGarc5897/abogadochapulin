@@ -1,0 +1,252 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #d0f4f7;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#game-container {
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    aspect-ratio: 2 / 1;
+    border: 3px solid #333;
+    position: relative;
+    overflow: hidden;
+    background-color: #2c2c2c;
+    background-image: 
+        repeating-linear-gradient(to right, #f0c541 0, #f0c541 20px, transparent 20px, transparent 40px),
+        repeating-linear-gradient(to right, #f0c541 0, #f0c541 20px, transparent 20px, transparent 40px);
+    background-size: 100% 4px;
+    background-repeat: repeat-x;
+    background-position: 0 33.3%, 0 66.6%;
+}
+
+#score-display, #money-display {
+    position: absolute;
+    top: 10px;
+    font-size: 24px;
+    z-index: 10;
+    color: #fff;
+    text-shadow: 1px 1px 2px black;
+}
+#score-display { left: 10px; }
+#money-display { right: 10px; }
+
+#character {
+    width: 90px;
+    height: 120px;
+    background-image: url('personaje.png');
+    background-size: 360px 120px;
+    position: absolute;
+    bottom: 0;
+    left: 50px;
+    z-index: 5;
+    transition: transform 0.3s ease-in-out;
+    transform-origin: bottom left;
+}
+
+.giant {
+    transform: scale(3);
+}
+
+.running { background-position: 0px 0; }
+.jumping { background-position: -90px 0; }
+.hit { background-position: -180px 0; }
+
+/* --- NUEVOS ESTILOS PARA EL MENSAJE DE POWER-UP CENTRAL --- */
+#power-up-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white; /* Letras blancas */
+    font-size: 48px; /* Grandes */
+    font-weight: bold;
+    text-shadow: 
+        -2px -2px 0 #000,  
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
+         2px  2px 0 #000,
+         0px  0px 10px rgba(0,0,0,0.8); /* Contraste fuerte */
+    z-index: 100; /* Asegura que esté por encima de todo */
+    white-space: nowrap; /* Evita que el texto se rompa */
+    text-align: center;
+    pointer-events: none; /* Permite clicks a través del mensaje */
+}
+.hidden {
+    display: none;
+}
+
+#start-screen-character, .detained-character-image {
+    width: 150px;
+    height: 200px;
+    background-image: url('personaje_introduccion.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+#start-screen-character { margin: 15px auto; }
+
+.detained-scene-image {
+    width: 200px;
+    height: 150px;
+    background-image: url('personaje_detenido_con_patrulla.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-bottom: 20px;
+}
+
+.obstacle, .collectible, .power-up {
+    position: absolute;
+    z-index: 4;
+}
+
+.obstacle {
+    width: 75px;
+    height: 60px;
+    background-image: url('carpeta.png'); /* Asumiendo que 'carpeta.png' es la patrulla */
+    background-size: contain; /* Asegura que la imagen se ajuste y no se corte */
+    background-repeat: no-repeat; /* ¡Importante! Asegura que no se duplique */
+    background-position: center; /* Centra la imagen dentro del div del obstáculo */
+    right: -80px;
+}
+
+.broken {
+    animation: fly-off 0.5s ease-out forwards;
+}
+@keyframes fly-off {
+    0% { transform: translateX(0) rotate(0); opacity: 1; }
+    100% { transform: translateX(800px) rotate(720deg); opacity: 0; }
+}
+
+.collectible {
+    width: 60px;
+    height: 60px;
+    background-image: url('dinero.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    right: -70px;
+}
+
+.power-up {
+    width: 50px;
+    height: 50px;
+    background-image: url('pesa.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    right: -60px;
+}
+
+.screen {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 20;
+    box-sizing: border-box;
+}
+
+#start-screen { background-color: rgba(255, 255, 255, 0.9); color: #333; }
+#game-over-screen { background-color: rgba(255, 255, 255, 0.85); color: #333; }
+#level-up-screen, #win-screen { background-color: rgba(0, 80, 150, 0.9); color: white; }
+
+#celebration-animation {
+    width: 90px;
+    height: 120px;
+    background-image: url('Saltando.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    animation: celebrate 1.5s infinite ease-in-out;
+    margin-bottom: 20px;
+}
+@keyframes celebrate {
+    0%   { transform: translateY(0) scaleX(1); }
+    25%  { transform: translateY(-30px) scaleX(1); }
+    50%  { transform: translateY(0) scaleX(-1); }
+    75%  { transform: translateY(-30px) scaleX(-1); }
+    100% { transform: translateY(0) scaleX(1); }
+}
+
+#continue-button, #play-again-button, #restart-button, #start-game-button {
+    margin-top: 20px;
+    padding: 15px 30px;
+    font-size: 18px;
+    cursor: pointer;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+#start-game-button { background-color: #28a745; font-size: 24px; padding: 20px 40px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+#restart-button { background-color: #e74c3c; }
+#continue-button, #play-again-button { background-color: #007bff; }
+
+#start-game-button:hover { background-color: #218838; }
+#restart-button:hover { background-color: #c0392b; }
+#continue-button:hover, #play-again-button:hover { background-color: #0056b3; }
+
+.game-over-wrapper {
+    position: relative;
+    z-index: 30;
+    width: 90%;
+    max-width: 700px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.game-over-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.game-over-panel.left { flex: 1; text-align: center; } 
+.game-over-panel.right { flex: 0 0 220px; }
+
+.text-background {
+    background-color: transparent; 
+    padding: 0; 
+    border-radius: 0;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+#game-over-screen h1 { color: #e74c3c; font-size: 2.5vw; }
+#game-over-screen p { color: #333; }
+.final-score-text { font-size: 1.2em; font-weight: bold; margin-bottom: 15px; }
+
+#leaderboard.transparent-background {
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#leaderboard h2 { color: #333; margin-top: 0; margin-bottom: 10px; }
+#leaderboard ol li { color: #555; }
+
+@media (max-width: 768px) {
+    .game-over-wrapper { flex-direction: column; }
+    #start-game-button { font-size: 18px; padding: 15px 30px; }
+
+    #power-up-message {
+        font-size: 24px; /* Ajusta el tamaño de fuente para móviles */
+    }
+}
