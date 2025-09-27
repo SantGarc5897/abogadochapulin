@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Elementos del DOM ---
     const gameContainer = document.getElementById('game-container');
     const character = document.getElementById('character');
-    const powerUpMessage = document.getElementById('power-up-message'); // Renombrado a powerUpMessage
+    const powerUpMessage = document.getElementById('power-up-message');
     const scoreDisplay = document.getElementById('score');
     const moneyDisplay = document.getElementById('money-count');
     const startScreen = document.getElementById('start-screen');
@@ -16,12 +16,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const winScreen = document.getElementById('win-screen');
     const playAgainButton = document.getElementById('play-again-button');
     const startGameButton = document.getElementById('start-game-button');
+    const pauseButton = document.getElementById('pause-button');
+    const pauseScreen = document.getElementById('pause-screen');
+    const resumeButton = document.getElementById('resume-button');
 
     // --- Configuración del Juego ---
     const gravity = 0.5;
     const jumpStrength = 12;
     const maxJumps = 2;
-    const POWER_UP_DURATION = 15000;
+    const POWER_UP_DURATION = 5000; // MODIFICADO: Duración de 15s a 5s
     const BASE_SPEED_INCREASE = 0.5;
     const MONEY_FOR_POWER_UP = 5;
 
@@ -30,7 +33,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let score = 0, moneyCollected = 0;
     let gameSpeed = 5, jumpCount = 0;
     let isGameRunning = false;
-    let obstacles = [], collectibles = [], powerUps = [];
+    let isPaused = false;
+    let obstacles = [], collectibles = [];
     let clickCountForExit = 0, clickTimer = null;
     let currentLevel = 1, scoreNeededForNextLevel = 900;
     let isPoweredUp = false, powerUpTimer = null;
@@ -47,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (characterY === 0 && !character.classList.contains('running') && !character.classList.contains('hit')) { character.classList.remove('jumping'); character.classList.add('running'); }
         moveGameElements(obstacles);
         moveGameElements(collectibles);
-        moveGameElements(powerUps);
         checkCollisions();
         requestAnimationFrame(gameLoop);
     }
@@ -65,38 +68,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function createItem(type) {
         if (!isGameRunning) return;
+
         const item = document.createElement('div');
         item.classList.add(type);
 
-        let itemHeight, initialRight;
-        if (type === 'obstacle') { itemHeight = 60; initialRight = '-80px'; } 
-        else if (type === 'collectible') { itemHeight = 60; initialRight = '-70px'; }
-        else { itemHeight = 50; initialRight = '-60px'; }
+        let itemHeight, initialRight, itemWidth;
+        if (type === 'obstacle') {
+            itemHeight = 60; initialRight = '-80px'; itemWidth = 75;
+        } else if (type === 'collectible') {
+            itemHeight = 60; initialRight = '-70px'; itemWidth = 60;
+        }
         
         item.style.right = initialRight;
 
         const lane = Math.floor(Math.random() * 3);
         const gameHeight = gameContainer.offsetHeight;
+        let potentialBottom;
         switch (lane) {
-            case 0: item.style.bottom = '10px'; break;
-            case 1: item.style.bottom = `${(gameHeight / 2) - (itemHeight / 2)}px`; break;
-            case 2: item.style.bottom = `${gameHeight - itemHeight - 10}px`; break;
+            case 0: potentialBottom = '10px'; break;
+            case 1: potentialBottom = `${(gameHeight / 2) - (itemHeight / 2)}px`; break;
+            case 2: potentialBottom = `${gameHeight - itemHeight - 10}px`; break;
         }
+        
+        const allItems = [...obstacles, ...collectibles];
+        const unsafeDistance = itemWidth * 1.5;
+
+        for (let existingItem of allItems) {
+            if (parseFloat(existingItem.style.right) < unsafeDistance) {
+                if (existingItem.style.bottom === potentialBottom) {
+                    return;
+                }
+            }
+        }
+
+        item.style.bottom = potentialBottom;
         
         gameContainer.appendChild(item);
         if (type === 'obstacle') obstacles.push(item);
         else if (type === 'collectible') collectibles.push(item);
-        else if (type === 'power-up') powerUps.push(item);
     }
 
     function checkCollisions() {
         const charRect = character.getBoundingClientRect();
+
         for (let i = obstacles.length - 1; i >= 0; i--) {
             if (isColliding(charRect, obstacles[i].getBoundingClientRect())) {
-                if (isPoweredUp) { destroyObstacle(obstacles[i], i); } 
-                else { character.classList.add('hit'); endGame(); return; }
+                if (isPoweredUp) {
+                    destroyObstacle(obstacles[i], i);
+                } else {
+                    character.classList.add('hit');
+                    endGame();
+                    return;
+                }
             }
         }
+
         for (let i = collectibles.length - 1; i >= 0; i--) {
             if (isColliding(charRect, collectibles[i].getBoundingClientRect())) {
                 score += 50;
@@ -104,16 +130,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 moneySinceLastPowerUp++;
                 scoreDisplay.textContent = score;
                 moneyDisplay.textContent = moneyCollected;
-                if (moneySinceLastPowerUp >= MONEY_FOR_POWER_UP) { createItem('power-up'); moneySinceLastPowerUp = 0; }
+                
+                if (moneySinceLastPowerUp >= MONEY_FOR_POWER_UP) {
+                    activatePowerUp();
+                    moneySinceLastPowerUp = 0;
+                }
+
                 collectibles[i].remove();
                 collectibles.splice(i, 1);
-            }
-        }
-        for (let i = powerUps.length - 1; i >= 0; i--) {
-            if (isColliding(charRect, powerUps[i].getBoundingClientRect())) {
-                activatePowerUp();
-                powerUps[i].remove();
-                powerUps.splice(i, 1);
             }
         }
     }
@@ -129,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function activatePowerUp() {
         isPoweredUp = true;
         character.classList.add('giant');
-        powerUpMessage.classList.remove('hidden'); // Muestra el mensaje central
+        powerUpMessage.classList.remove('hidden');
         clearTimeout(powerUpTimer);
         powerUpTimer = setTimeout(deactivatePowerUp, POWER_UP_DURATION);
     }
@@ -137,7 +161,24 @@ document.addEventListener('DOMContentLoaded', function() {
     function deactivatePowerUp() {
         isPoweredUp = false;
         character.classList.remove('giant');
-        powerUpMessage.classList.add('hidden'); // Oculta el mensaje central
+        powerUpMessage.classList.add('hidden');
+    }
+
+    function togglePause() {
+        if (!isGameRunning && !isPaused) return;
+
+        isPaused = !isPaused;
+
+        if (isPaused) {
+            isGameRunning = false;
+            if (window.gameIntervals) window.gameIntervals.forEach(clearInterval);
+            pauseScreen.style.display = 'flex';
+        } else {
+            isGameRunning = true;
+            pauseScreen.style.display = 'none';
+            resumeGameIntervals();
+            requestAnimationFrame(gameLoop);
+        }
     }
 
     function updateScore() {
@@ -149,10 +190,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // MODIFICADO PARA REINICIAR CONTADOR
     function levelUp() {
         isGameRunning = false;
         if (window.gameIntervals) window.gameIntervals.forEach(clearInterval);
         if (isPoweredUp) deactivatePowerUp();
+        
+        moneySinceLastPowerUp = 0; // AÑADIDO: Reinicia el contador de dinero para el power-up
+        
         totalScoreAcrossLevels += score;
         currentLevel++;
         scoreNeededForNextLevel = 900 * currentLevel;
@@ -170,19 +215,22 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(gameLoop);
     }
 
+
+
     function startGame() {
         currentLevel = 1; scoreNeededForNextLevel = 900;
         score = 0; moneyCollected = 0; totalScoreAcrossLevels = 0;
         characterY = 0; characterVelocityY = 0;
         gameSpeed = 5; jumpCount = 0;
         isPoweredUp = false; moneySinceLastPowerUp = 0;
+        isPaused = false;
         clearTimeout(powerUpTimer);
         character.className = 'running';
-        powerUpMessage.classList.add('hidden'); // Asegura que el mensaje esté oculto al empezar
+        powerUpMessage.classList.add('hidden');
         scoreDisplay.textContent = 0; moneyDisplay.textContent = 0;
-        [...obstacles, ...collectibles, ...powerUps].forEach(el => el.remove());
-        obstacles = []; collectibles = []; powerUps = [];
-        startScreen.style.display = 'none'; gameOverScreen.style.display = 'none'; winScreen.style.display = 'none';
+        [...obstacles, ...collectibles].forEach(el => el.remove());
+        obstacles = []; collectibles = [];
+        startScreen.style.display = 'none'; gameOverScreen.style.display = 'none'; winScreen.style.display = 'none'; pauseScreen.style.display = 'none';
         isGameRunning = true;
         resumeGameIntervals();
         requestAnimationFrame(gameLoop);
@@ -238,7 +286,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function performJump() { if (isGameRunning && jumpCount < maxJumps) { characterVelocityY = jumpStrength; jumpCount++; } }
 
-    function handleKeyPress(e) { if (e.code === 'Space' && isGameRunning) { e.preventDefault(); performJump(); } }
+    function handleKeyPress(e) {
+        if (e.code === 'Space' && isGameRunning) { e.preventDefault(); performJump(); }
+        if (e.code === 'KeyP') { togglePause(); }
+    }
 
     function handleScreenInteraction(e) {
         if (isGameRunning) {
@@ -258,6 +309,8 @@ document.addEventListener('DOMContentLoaded', function() {
     restartButton.addEventListener('click', returnToStartScreen);
     playAgainButton.addEventListener('click', returnToStartScreen);
     continueButton.addEventListener('click', continueGame);
-    startScreen.style.display = 'flex';
+    pauseButton.addEventListener('click', togglePause);
+    resumeButton.addEventListener('click', togglePause);
 
+    startScreen.style.display = 'flex';
 });
