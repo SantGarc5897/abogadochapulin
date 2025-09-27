@@ -39,6 +39,26 @@ body {
 #score-display { left: 10px; }
 #money-display { right: 10px; }
 
+/* --- ESTILOS PARA EL BOTÓN DE PAUSA --- */
+#pause-button {
+    position: absolute;
+    top: 8px;
+    right: 80px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+#pause-button .pause-line {
+    width: 8px;
+    height: 90%;
+    background-color: #f0c541; /* Amarillo */
+    border-radius: 2px;
+}
+
 #character {
     width: 90px;
     height: 120px;
@@ -49,40 +69,29 @@ body {
     left: 50px;
     z-index: 5;
     transition: transform 0.3s ease-in-out;
-    transform-origin: bottom left;
+    transform-origin: bottom;
 }
 
-.giant {
-    transform: scale(3);
-}
-
+.giant { transform: scale(3); }
 .running { background-position: 0px 0; }
 .jumping { background-position: -90px 0; }
 .hit { background-position: -180px 0; }
 
-/* --- NUEVOS ESTILOS PARA EL MENSAJE DE POWER-UP CENTRAL --- */
 #power-up-message {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: white; /* Letras blancas */
-    font-size: 48px; /* Grandes */
+    color: white;
+    font-size: 48px;
     font-weight: bold;
-    text-shadow: 
-        -2px -2px 0 #000,  
-         2px -2px 0 #000,
-        -2px  2px 0 #000,
-         2px  2px 0 #000,
-         0px  0px 10px rgba(0,0,0,0.8); /* Contraste fuerte */
-    z-index: 100; /* Asegura que esté por encima de todo */
-    white-space: nowrap; /* Evita que el texto se rompa */
+    text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0px 0px 10px rgba(0,0,0,0.8);
+    z-index: 100;
+    white-space: nowrap;
     text-align: center;
-    pointer-events: none; /* Permite clicks a través del mensaje */
+    pointer-events: none;
 }
-.hidden {
-    display: none;
-}
+.hidden { display: none; }
 
 #start-screen-character, .detained-character-image {
     width: 150px;
@@ -104,7 +113,7 @@ body {
     margin-bottom: 20px;
 }
 
-.obstacle, .collectible, .power-up {
+.obstacle, .collectible {
     position: absolute;
     z-index: 4;
 }
@@ -112,10 +121,10 @@ body {
 .obstacle {
     width: 75px;
     height: 60px;
-    background-image: url('carpeta.png'); /* Asumiendo que 'carpeta.png' es la patrulla */
-    background-size: contain; /* Asegura que la imagen se ajuste y no se corte */
-    background-repeat: no-repeat; /* ¡Importante! Asegura que no se duplique */
-    background-position: center; /* Centra la imagen dentro del div del obstáculo */
+    background-image: url('carpeta.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
     right: -80px;
 }
 
@@ -136,14 +145,7 @@ body {
     right: -70px;
 }
 
-.power-up {
-    width: 50px;
-    height: 50px;
-    background-image: url('pesa.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    right: -60px;
-}
+/* El estilo para .power-up se eliminó porque ya no aparece en pantalla */
 
 .screen {
     position: absolute;
@@ -160,6 +162,7 @@ body {
 #start-screen { background-color: rgba(255, 255, 255, 0.9); color: #333; }
 #game-over-screen { background-color: rgba(255, 255, 255, 0.85); color: #333; }
 #level-up-screen, #win-screen { background-color: rgba(0, 80, 150, 0.9); color: white; }
+#pause-screen { background-color: rgba(0, 0, 0, 0.7); color: white; } /* Estilo para la pantalla de pausa */
 
 #celebration-animation {
     width: 90px;
@@ -178,7 +181,7 @@ body {
     100% { transform: translateY(0) scaleX(1); }
 }
 
-#continue-button, #play-again-button, #restart-button, #start-game-button {
+#continue-button, #play-again-button, #restart-button, #start-game-button, #resume-button {
     margin-top: 20px;
     padding: 15px 30px;
     font-size: 18px;
@@ -191,11 +194,11 @@ body {
 
 #start-game-button { background-color: #28a745; font-size: 24px; padding: 20px 40px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 #restart-button { background-color: #e74c3c; }
-#continue-button, #play-again-button { background-color: #007bff; }
+#continue-button, #play-again-button, #resume-button { background-color: #007bff; }
 
 #start-game-button:hover { background-color: #218838; }
 #restart-button:hover { background-color: #c0392b; }
-#continue-button:hover, #play-again-button:hover { background-color: #0056b3; }
+#continue-button:hover, #play-again-button:hover, #resume-button:hover { background-color: #0056b3; }
 
 .game-over-wrapper {
     position: relative;
@@ -245,8 +248,5 @@ body {
 @media (max-width: 768px) {
     .game-over-wrapper { flex-direction: column; }
     #start-game-button { font-size: 18px; padding: 15px 30px; }
-
-    #power-up-message {
-        font-size: 24px; /* Ajusta el tamaño de fuente para móviles */
-    }
+    #power-up-message { font-size: 24px; }
 }
